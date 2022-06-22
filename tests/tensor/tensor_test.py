@@ -39,7 +39,12 @@ class Test(unittest.TestCase):
 
         z.backward(Tensor(np.array([1,1,1,1,1,1])))
 
-        print(z.creators)
+        self.assertEqual(x.grad, y.grad)
+
+        test_creators = []
+        test_creators.append(x)
+        test_creators.append(y)
 
 
+        self.assertEqual(z.creators, test_creators)
 

@@ -28,6 +28,7 @@ class Tensor(object):
         self.grad = None
 
     # recurse backwards and apply the gradient layer to each parent
+    # this recurses back to layer_0 tensor 
     def backward(self, grad): 
         self.grad = grad
 
