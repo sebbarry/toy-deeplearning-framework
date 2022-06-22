@@ -1,0 +1,14 @@
+[build-system]
+requires = ["numpy"]
+
+
+[project]
+name = "toy_dl"
+version = "0.0.1"
+authors = [
+{ name="Sebastian Barry", email="sebastianbarry02@gmail.com" },
+]
+description="A toy deep learning framework"
+readme="README.md"
+requires-python=">=3.6"
+
