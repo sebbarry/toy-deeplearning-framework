@@ -66,4 +66,64 @@ class Test(unittest.TestCase):
 
 
         self.assertEqual(z.creators, test_creators)
+        
+    
+    # negation gradient
+    def test_negation(self): 
+        x = Tensor(self.test_data, autograd=True)
+        y = Tensor(self.test_data, autograd=True)
+        z = Tensor(self.test_data, autograd=True)
+        
+
+        a = x + (-y)
+        b = (-y) + z
+        c = a + b
+        
+        c.backward(Tensor(np.array([1, 1, 1, 1, 1, 1])))
+
+        self.assertEqual(y.grad.data.__str__(), np.array([-2, -2, -2, -2, -2, -2]).__str__())
+
+
+    # sum test
+    def test_sum(self):
+        x = Tensor(np.array([[1, 2, 3], 
+                             [4, 5, 6]]))
+
+        # shrink into a smaller dimension
+        value = x.sum(0)
+        self.assertEqual(value.__str__(), np.array([5, 7, 9]).__str__())
+
+        # shrink into a smaller dimension
+        value = x.sum(1)
+        self.assertEqual(value.__str__(), np.array([6, 15]).__str__())
+
+
+        # expand into a larger dimension (copying values into its larger dimension)
+        y = Tensor(np.array([[1, 2, 3], [4, 5, 6]]))
+        value2 = y.expand(dim=0, copies=2)
+        
+        self.assertEqual(value2.__str__(), np.array([[[1, 2, 3], [4, 5, 6]],[[1, 2, 3], [4, 5, 6]]]).__str__())
+
+
+    def test_train(self):
+        import numpy as np
+        np.random.seed(0)
+        data = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), autograd=True)
+        target = Tensor(np.array([[0], [1], [0], [1]]), autograd=True)
+
+        w = list()
+        w.append(Tensor(np.random.rand(2, 3), autograd=True))
+        w.append(Tensor(np.random.rand(3, 1), autograd=True))
+
+        for i in range(10):
+            pred = data.mm(w[0]).mm(w[1]) # prediction layer
+            loss = ((pred - target)*(pred - target)).sum(0) # comparison
+            loss.backward(Tensor(np.ones_like(loss.data))) # backprop
+            for w_ in w: 
+                w_.data -= w_.grad.data * 0.1
+                w_.grad.data *= 0
+
+        self.assertGreater(0.7, loss.data)
+
+            
 

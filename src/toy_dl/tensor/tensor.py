@@ -59,6 +59,7 @@ class Tensor(object):
 
     # recurse backwards and apply the gradient layer to each parent
     # this recurses back to layer_0 tensor 
+    # the grad is the gradient value be backprop with
     def backward(self, grad, grad_origin=None): 
 
         # checks whether we can backprop. of waiting for a gradient in which case decrement the counter.
@@ -79,6 +80,46 @@ class Tensor(object):
                 self.creators[0].backward(grad)
                 self.creators[1].backward(grad)
 
+            if(self.creation_op == "neg"): 
+                self.creators[0].backward(self.grad.__neg__())
+
+            if(self.creation_op == "sub"):
+                new = Tensor(self.grad.data)
+                self.creators[0].backward(new, self)
+                new = Tensor(self.grad.__neg__().data)
+                self.creators[1].backward(new, self)
+
+            if(self.creation_op == "mul"):
+                new = self.grad * self.creators[1]
+                self.creators[0].backward(new, self)
+                new = self.grad * self.creators[0]
+                self.creators[1].backward(new, self)
+
+            if(self.creation_op == "mm"):
+                # activation function
+                act = self.creators[0]
+                # weight values
+                weights = self.creators[1]
+                # perform layer multiplication. the grad value is the delta calculation 
+                #       ~ layer_2_delta.dot(weights_1_2.T)
+                new = self.grad.mm(weights.transpose())
+                # backprop with the activation function on the layer.
+                act.backward(new)
+                new = self.grad.transpose().mm(act).transpose()
+                weights.backward(new)
+
+            if(self.creation_op == "transpose"):
+                self.creators[0].backward(self.grad.transpose())
+
+            if("sum" in self.creation_op):
+                dim = int(self.creation_op.split("_")[1])
+                ds = self.creators[0].data.shape[dim]
+                self.creators[0].backward(self.grad.expand(dim,ds))
+
+            if("expand" in self.creation_op):
+                dim = int(self.creation_op.split("_")[1])
+                self.creators[0].backward(self.grad.sum(dim))
+
     # when two tensors are added to create a third, 
     # they become the creators of the third tensor. hence the creators list.
     def __add__(self, other):
@@ -90,6 +131,83 @@ class Tensor(object):
                     creation_op="add")
         # otherwise return a regular tensor value
         return Tensor(self.data + other.data)
+
+    # invert the sign of the Tensor by multiplying the value by -1
+    def __neg__(self): 
+        if self.autograd:
+            return Tensor(self.data * -1, 
+                          autograd=True, 
+                          creators=[self], 
+                          creation_op="neg")
+        return Tensor(self.data * -1)
+
+
+    # subtract values
+    def __sub__(self, other): 
+        if self.autograd and other.autograd:
+            return Tensor(self.data - other.data, 
+                          autograd=True, 
+                          creators=[self,other], 
+                          creation_op="sub")
+        return Tensor(self.data - other.data)
+
+    # multiply values
+    def __mul__(self, other): 
+        if self.autograd and other.autograd: 
+            return Tensor(self.data * other.data, 
+                          autograd=True, 
+                          creators=[self, other],
+                          creation_op="mul")
+        return Tensor(self.data * other.data)
+
+
+    # sums accross a dimension of matrices. It scales down a Tensor to a smaller dimension summing 
+    # the values along the way.
+    def sum(self, dim): 
+        if self.autograd: 
+            return Tensor(self.data.sum(dim), 
+                          autograd=True, 
+                          creators=[self],
+                          creation_op="sum_"+str(dim))
+        return Tensor(self.data.sum(dim))
+    
+
+    # expand is called to backprop through a .sum(). function that copies data along a dimension.
+    # expand will add a dimension to the Tensor.
+    # it will also copy lower dimension arrays into a large data structure of higher dimension.
+    def expand(self, dim, copies): 
+
+        trans_cmd = list(range(0, len(self.data.shape)))
+        trans_cmd.insert(dim, len(self.data.shape))
+        new_shape = list(self.data.shape) + [copies]
+        new_data = self.data.repeat(copies).reshape(new_shape)
+        new_data = new_data.transpose(trans_cmd)
+
+        if self.autograd: 
+            return Tensor(new_data, 
+                          autograd=True, 
+                          creators=[self], 
+                          creation_op="expand_" + str(dim))
+        return Tensor(new_data)
+
+    # transpose a matrix - self explanatory
+    def transpose(self): 
+        if self.autograd: 
+            return Tensor(self.data.transpose(),
+                          autograd=True, 
+                          creators=[self],
+                          creation_op="transpose")
+        return Tensor(self.data.transpose())
+
+
+    # matrix multiplication here
+    def mm(self, x):
+        if self.autograd:
+            return Tensor(self.data.dot(x.data), 
+                          autograd=True, 
+                          creators=[self,x],
+                          creation_op="mm")
+        return Tensor(self.data.dot(x.data))
 
     def __repr__(self):
         return str(self.data.__repr__())
