@@ -27,11 +27,30 @@ class Test(unittest.TestCase):
         self.assertEqual(z.__str__(), np.array([2,4,6, 8,10, 20]).__str__())
 
 
+    def test_backprop_a(self): 
+        x = Tensor(self.test_data, autograd=True)
+        y = Tensor(self.test_data, autograd=True)
+        z = Tensor(self.test_data, autograd=True)
+
+
+        xx = x + y 
+        yy = y + z
+        zz = xx + yy
+
+        try: 
+            zz.backward(Tensor(np.array([1, 1, 1, 1, 1, 1])))
+        except Exception as E: 
+            sys.stdout.write(E.__str__())
+            self.fail(E.__str__())
+
+    
+
+
 
     # auto gradient descent.
-    def test_backprop(self): 
-        x = Tensor(self.test_data)
-        y = Tensor(self.test_data)
+    def test_backprop_b(self): 
+        x = Tensor(self.test_data, autograd=True)
+        y = Tensor(self.test_data, autograd=True)
 
         # adding these two add the two to its list of creators
         z = x + y 
