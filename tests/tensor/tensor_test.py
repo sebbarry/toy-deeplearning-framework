@@ -107,6 +107,8 @@ class Test(unittest.TestCase):
 
     def test_train(self):
         import numpy as np
+        from src.toy_dl.sgd.sgd import SGD
+
         np.random.seed(0)
         data = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), autograd=True)
         target = Tensor(np.array([[0], [1], [0], [1]]), autograd=True)
@@ -115,15 +117,28 @@ class Test(unittest.TestCase):
         w.append(Tensor(np.random.rand(2, 3), autograd=True))
         w.append(Tensor(np.random.rand(3, 1), autograd=True))
 
+        # add a SGD here.
+        optim = SGD(parameters=w, alpha=0.1)
+
         for i in range(10):
             pred = data.mm(w[0]).mm(w[1]) # prediction layer
             loss = ((pred - target)*(pred - target)).sum(0) # comparison
             loss.backward(Tensor(np.ones_like(loss.data))) # backprop
+        
+             
+            optim.step()
+            # NOTE
+            # We are replacing our SGD loop with the object that we have created instead.
+            # Remember - at the end of a training loop, we wnat to update the weights with our delta values and apply an alpha.
+            """
             for w_ in w: 
                 w_.data -= w_.grad.data * 0.1
                 w_.grad.data *= 0
-
-        self.assertGreater(0.7, loss.data)
+            """
+            
+            
+        # assertion to make sure our loss is below 0.07
+        self.assertGreater(0.07, loss.data)
 
             
 
