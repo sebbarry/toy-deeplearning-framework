@@ -142,3 +142,98 @@ class Test(unittest.TestCase):
 
             
 
+    def test_layer(self):
+        import numpy as np
+        from src.toy_dl.layer.layer import Sequential, Linear, MSELoss
+        from src.toy_dl.sgd.sgd import SGD
+
+        np.random.seed(1)
+
+        data = Tensor(np.array([[0,0], [0, 1], [1, 0], [1, 1]]), autograd=True)
+        target = Tensor(np.array([[0], [1], [0], [1]]), autograd=True)
+
+        model = Sequential([Linear(2,3), Linear(3, 1)])
+        optim = SGD(parameters=model.get_parameters(), alpha=0.05)
+
+        for i in range(20):
+            pred=model.forward(data)
+            loss = ((pred - target) * (pred - target)).sum(0)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+    
+        self.assertGreater(0.05, loss.data)
+
+
+
+    def test_layer_criterion(self):
+        import numpy as np
+        from src.toy_dl.layer.layer import Sequential, Linear, MSELoss
+        from src.toy_dl.sgd.sgd import SGD
+
+        np.random.seed(1)
+
+        data = Tensor(np.array([[0,0], [0, 1], [1, 0], [1, 1]]), autograd=True)
+        target = Tensor(np.array([[0], [1], [0], [1]]), autograd=True)
+
+        model = Sequential([Linear(2,3), Linear(3, 1)])
+        criterion = MSELoss()
+
+        optim = SGD(parameters=model.get_parameters(), alpha=0.05)
+
+
+        for i in range(20):
+            pred=model.forward(data)
+            loss = criterion.forward(pred, target)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+    
+        self.assertGreater(0.05, loss.data)
+
+
+    def test_layer_Sigmoid_Tanh(self):
+        import numpy as np
+        from src.toy_dl.layer.layer import Sequential, Linear, MSELoss, Tanh, Sigmoid
+        from src.toy_dl.sgd.sgd import SGD
+
+        np.random.seed(1)
+
+        # input data -> (2, 3) -> Tanh() -> (3, 1)  -> Sigmoid() -> RESULT
+        data = Tensor(np.array([
+            [0, 0], 
+            [0, 1],
+            [1, 0],
+            [1, 1],
+        ]), autograd=True)
+
+        target = Tensor(np.array([
+            [0],
+            [1],
+            [0],
+            [1],
+        ]), autograd=True)
+
+        # two layer network.
+        # activation function layer.
+        # sigmoid output layer.
+        model = Sequential([
+            Linear(2,3), 
+            Tanh(), 
+            Linear(3,1), 
+            Sigmoid()
+        ])
+
+
+        criterion = MSELoss()
+
+        optim = SGD(parameters=model.get_parameters(), alpha=1)
+
+        for i in range(10):
+            pred = model.forward(data) # predict
+            loss = criterion.forward(pred, target) # compare
+            loss.backward(Tensor(np.ones_like(loss.data))) # learn
+            optim.step() # update weights
+            print(loss)
+
+
+
+

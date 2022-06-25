@@ -19,7 +19,7 @@ class SGD(object):
     # of noise to the adjustment during gd
     def step(self, zero=True):
         for p in self.parameters: 
-            p.data -= p.grad.data * self.alpha
+            p.data -= p.grad.data * self.alpha # same as weights_0_1 -= alpha * delta_layer_1
             if(zero):
                 p.grad.data *= 0
 

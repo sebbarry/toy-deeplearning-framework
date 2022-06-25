@@ -64,6 +64,8 @@ class Tensor(object):
 
         # checks whether we can backprop. of waiting for a gradient in which case decrement the counter.
         if self.autograd: 
+            if grad is None: 
+                grad = Tensor(np.ones_like(self.data))
             if grad_origin is not None: 
                 if self.children[grad_origin.id] == 0: 
                     raise Exception("cannot back prop more than once")
@@ -95,6 +97,22 @@ class Tensor(object):
                 new = self.grad * self.creators[0]
                 self.creators[1].backward(new, self)
 
+            # activation functions conditionals.
+            if self.creation_op == "sigmoid": 
+                ones = Tensor(np.ones_like(self.grad.data))
+                self.creators[0].backward(self.grad * (self * (ones - self)))
+            if self.creation_op == "tanh":
+                ones = Tensor(np.ones_like(self.grad.data))
+                self.creators[0].backward(self.grad * (ones - (self * self)))
+
+            if self.creation_op == "relu": #TODO fix this.
+                ones = Tensor(np.ones_like(self.grad.data))
+                self.creators[0].backward(self.grad * (ones * self))
+
+
+
+
+            # check if layer multiplication w*i
             if(self.creation_op == "mm"):
                 # activation function
                 act = self.creators[0]
@@ -119,6 +137,8 @@ class Tensor(object):
             if("expand" in self.creation_op):
                 dim = int(self.creation_op.split("_")[1])
                 self.creators[0].backward(self.grad.sum(dim))
+
+
 
     # when two tensors are added to create a third, 
     # they become the creators of the third tensor. hence the creators list.
@@ -209,6 +229,40 @@ class Tensor(object):
                           creation_op="mm")
         return Tensor(self.data.dot(x.data))
 
+
+
+    """
+    Activation Functions.
+    """
+    def sigmoid(self):
+        if self.autograd: 
+            return Tensor(1 / (1+np.exp(-self.data)),
+                          autograd=True, 
+                          creators=[self],
+                          creation_op="sigmoid")
+        return Tensor(1 / (1+np.exp(-self.data)))
+
+
+    def tanh(self):
+        if self.autograd: 
+            return Tensor(np.tanh(self.data), 
+                                  autograd=True, 
+                                  creators=[self],
+                                  creation_op="tanh")
+        return Tensor(np.tanh(self.data))
+
+
+    def relu(self):
+        if self.autograd: 
+            return Tensor(np.maximum(0, self.data), 
+                          autograd=True, 
+                          creators=[self],
+                          creation_op="relu"
+                          )
+        return Tensor(np.maximum(0, self.data))
+
+
+    # class functions
     def __repr__(self):
         return str(self.data.__repr__())
 
