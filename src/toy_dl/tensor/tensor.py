@@ -110,6 +110,16 @@ class Tensor(object):
                 self.creators[0].backward(self.grad * (ones * self))
 
 
+            # NOTE ?
+            if self.creation_op == "index_select":
+                new_grad = np.zeros_like(self.creators[0].data)
+                indices_ = self.index_select_indices.data.flatten()
+                grad_ = grad.data.reshape(len(indices_), -1)
+                for i in range(len(indices_)):
+                    new_grad[indices_[i]] += grad_[i]
+                self.creators[0].backward(Tensor(new_grad))
+
+
 
 
             # check if layer multiplication w*i
@@ -128,6 +138,8 @@ class Tensor(object):
 
             if(self.creation_op == "transpose"):
                 self.creators[0].backward(self.grad.transpose())
+
+
 
             if("sum" in self.creation_op):
                 dim = int(self.creation_op.split("_")[1])
@@ -260,6 +272,17 @@ class Tensor(object):
                           creation_op="relu"
                           )
         return Tensor(np.maximum(0, self.data))
+
+
+    def index_select(self, indices): 
+        if select.autograd: 
+            new = Tensor(self.data[indices.data], 
+                         autograd=True, 
+                         creators=[self], 
+                         creation_op="index_select")
+            nex.index_select_indices=indices
+            return new
+        return Tensor(self.data[indices.data])
 
 
     # class functions
