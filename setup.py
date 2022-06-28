@@ -1,5 +1,8 @@
 import setuptools
 from setuptools import find_packages
+import re
+
+
 
 
 with open("README.md", 'r', encoding="utf-8") as f: 
@@ -16,7 +19,7 @@ setuptools.setup(
         license='MIT', 
         install_requires=['numpy'],
         packages=find_packages(),
-        package_dir={'toydl': 'src/toydl'}
+        package_dir={'': 'src/toydl'}
         )
 
 
