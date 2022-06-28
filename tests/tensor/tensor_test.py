@@ -232,8 +232,42 @@ class Test(unittest.TestCase):
             loss = criterion.forward(pred, target) # compare
             loss.backward(Tensor(np.ones_like(loss.data))) # learn
             optim.step() # update weights
-            print(loss)
+
+        self.assertGreater(0.08, loss.data)
 
 
 
+    def test_cross_entropy(self): 
+        import numpy as np
+        import sys
+        from src.toy_dl.sgd.sgd import SGD
+        from src.toy_dl.layer.layer import Sequential, Linear, MSELoss, Tanh, Sigmoid, CrossEntropyLoss, Embedding
+        np.random.seed(0)
+
+        # data indices
+        data = Tensor(np.array([1, 2, 1, 2]), autograd=True)
+
+        # target indices
+        target = Tensor(np.array([0, 1, 0, 1]), autograd=True)
+
+        # model creation
+        model = Sequential([
+            Embedding(3, 3), 
+            Tanh(), 
+            Linear(3, 4)
+        ])
+
+        # loss appropriation
+        criterion = CrossEntropyLoss()
+
+        optim = SGD(parameters=model.get_parameters(), alpha=0.1)
+
+        for i in range(100):
+            pred = model.forward(data)
+            loss = criterion.forward(pred, target)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+
+
+        self.assertGreater(0.08, loss.data)
 

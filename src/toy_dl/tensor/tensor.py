@@ -120,6 +120,10 @@ class Tensor(object):
                 self.creators[0].backward(Tensor(new_grad))
 
 
+            if self.creation_op == "cross_entropy": 
+                dx = self.softmax_output - self.target_dist
+                self.creators[0].backward(Tensor(dx))
+
 
 
             # check if layer multiplication w*i
@@ -243,6 +247,29 @@ class Tensor(object):
 
 
 
+    # Cross-entropy layer function.
+    def cross_entropy(self, target_indices): 
+        temp = np.exp(self.data)
+        softmax_output = temp / np.sum(temp,
+                                       axis=len(self.data.shape) -1,
+                                       keepdims=True)
+        t = target_indices.data.flatten()
+        p = softmax_output.reshape(len(t), -1)
+        target_dist = np.eye(p.shape[1])[t]
+        loss = -(np.log(p) * (target_dist)).sum(1).mean()
+
+        if self.autograd: 
+            out = Tensor(loss, 
+                         autograd=True, 
+                         creators=[self], 
+                         creation_op="cross_entropy")
+            out.softmax_output = softmax_output
+            out.target_dist = target_dist
+            return out
+
+        return Tensor(loss)
+
+
     """
     Activation Functions.
     """
@@ -275,17 +302,20 @@ class Tensor(object):
 
 
     def index_select(self, indices): 
-        if select.autograd: 
+        if self.autograd: 
             new = Tensor(self.data[indices.data], 
                          autograd=True, 
                          creators=[self], 
                          creation_op="index_select")
-            nex.index_select_indices=indices
+            new.index_select_indices=indices
             return new
         return Tensor(self.data[indices.data])
 
 
-    # class functions
+
+    """
+    OO Class Functions.
+    """
     def __repr__(self):
         return str(self.data.__repr__())
 

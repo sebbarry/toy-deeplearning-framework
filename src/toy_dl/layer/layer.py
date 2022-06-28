@@ -67,8 +67,10 @@ class Sequential(Layer):
 
 
 """
-This is a loss function layer.
-It is a function on the input activated during the forward propogation.
+These are loss function layers.
+It is a way to determine loss accross the layer through a forward propogation using the prediction and the target values..
+
+There are two different loss functions defined below. 
 """
 class MSELoss(Layer):
 
@@ -80,7 +82,20 @@ class MSELoss(Layer):
         return ((pred-target)*(pred-target)).sum(0)
 
 
+# Cross Entropy Loss Layer
+class CrossEntropyLoss(Layer):
 
+    def __init__(self):
+        super().__init__()
+
+    # TODO move xent loss logic from Tensor Class here? 
+    def forward(self, input, target): 
+        return input.cross_entropy(target)
+
+
+"""
+Activation Function Layers
+"""
 class Tanh(Layer):
 
     def __init__(self):
@@ -120,7 +135,7 @@ class Embedding(Layer):
         self.vocab_size = vocab_size
         self.dim = dim
 
-        weight = np.random.random((vocab_size, dim) - 0.5) / dim # convention from word2vec
+        weight = np.random.rand(vocab_size, dim) - 0.5 / dim # convention from word2vec
         self.weight = Tensor(weight, autograd=True)
 
         self.parameters.append(self.weight)
@@ -129,4 +144,50 @@ class Embedding(Layer):
         return self.weight.index_select(input)
 
         
+
+""" 
+RNN Layer 
+"""
+# this is constructed using three linar layers and the .forward() method to take both the output from the previous hidden state
+# and the input from the current training data.
+
+class RNNCell(Layer): 
+
+    def __init__(self, n_inputs, n_hidden, n_output, activation="sigmoid"): 
+        super().__init__()
+
+        self.n_inputs = n_inputs
+        self.n_hidden = n_hidden
+        self.n_output = n_output
+
+        if activation == "sigmoid":
+            self.activation = Sigmoid()
+        elif activation == "tanh":
+            self.activation = Tanh()
+        elif activation == "relu":
+            self.activation = Relu()
+        else: 
+            raise Exception("Non Linerity not found")
+
+        self.w_ih = Linear(n_inputs, n_hidden)
+        self.w_hh = Linear(n_hidden, n_hidden0)
+        self.w_ho = Linear(n_hidden, n_output)
+
+        self.parameters += self.w_ih.get_parameters()
+        self.parameters += self.w_hh.get_parameters()
+        self.parameters += self.w_ho.get_parameters()
+
+    def forward(self, input, hidden):
+        from_prev_hidden = self.w_hh.forward(hidden)
+        combined = self.w_ih.forward(input) + from_prev_hidden
+        new_hidden = self.activation.forward(combined)
+        output = self.w_ho.forward(new_hidden)
+        return output, new_hidden
+
+
+    def init_hidden(self, batch_size=1):
+        return Tensor(np.zeros((batch_size, self.n_hidden)), autograd=True)
+
+
+
 
