@@ -170,7 +170,7 @@ class RNNCell(Layer):
             raise Exception("Non Linerity not found")
 
         self.w_ih = Linear(n_inputs, n_hidden)
-        self.w_hh = Linear(n_hidden, n_hidden0)
+        self.w_hh = Linear(n_hidden, n_hidden)
         self.w_ho = Linear(n_hidden, n_output)
 
         self.parameters += self.w_ih.get_parameters()
