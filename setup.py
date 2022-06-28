@@ -1,4 +1,5 @@
 import setuptools
+from setuptools import find_packages
 
 
 with open("README.md", 'r', encoding="utf-8") as f: 
@@ -14,7 +15,7 @@ setuptools.setup(
         url='https://github.com/sebbarry/toy-deeplearning-framework.git', 
         license='MIT', 
         install_requires=['numpy'],
-        packages=['src'],
+        packages=find_packages(),
         )
 
 
