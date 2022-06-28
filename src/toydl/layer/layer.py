@@ -3,7 +3,7 @@ import sys
 
 
 
-from src.tensor.tensor import Tensor
+from src.toydl.tensor.tensor import Tensor
 
 # This is the parent superclass.
 class Layer(object):
