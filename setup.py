@@ -6,7 +6,7 @@ with open("README.md", 'r', encoding="utf-8") as f:
     long_description = f.read()
 
 setuptools.setup(
-        name='toy_dl', 
+        name='toydl', 
         version='0.0.1', 
         author='Sebastian Barry', 
         author_email='sebastianbarry02@gmail.com', 
