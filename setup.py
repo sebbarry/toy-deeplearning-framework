@@ -19,7 +19,7 @@ setuptools.setup(
         license='MIT', 
         install_requires=['numpy'],
         packages=find_packages(),
-        package_dir={'src/toydl': 'toydl'}
+        package_dir={'toydl': 'src/toydl'}
         )
 
 
