@@ -1,7 +1,7 @@
 import unittest, sys
 import numpy as np
 
-from src.tensor.tensor import Tensor
+from toy_dl.tensor.tensor import Tensor
 
 class Test(unittest.TestCase): 
 
@@ -107,7 +107,7 @@ class Test(unittest.TestCase):
 
     def test_train(self):
         import numpy as np
-        from src.sgd.sgd import SGD
+        from toy_dl.sgd.sgd import SGD
 
         np.random.seed(0)
         data = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), autograd=True)
@@ -144,8 +144,8 @@ class Test(unittest.TestCase):
 
     def test_layer(self):
         import numpy as np
-        from src.layer.layer import Sequential, Linear, MSELoss
-        from src.sgd.sgd import SGD
+        from toy_dl.layer.layer import Sequential, Linear, MSELoss
+        from toy_dl.sgd.sgd import SGD
 
         np.random.seed(1)
 
@@ -167,8 +167,8 @@ class Test(unittest.TestCase):
 
     def test_layer_criterion(self):
         import numpy as np
-        from src.layer.layer import Sequential, Linear, MSELoss
-        from src.sgd.sgd import SGD
+        from toy_dl.layer.layer import Sequential, Linear, MSELoss
+        from toy_dl.sgd.sgd import SGD
 
         np.random.seed(1)
 
@@ -192,8 +192,8 @@ class Test(unittest.TestCase):
 
     def test_layer_Sigmoid_Tanh(self):
         import numpy as np
-        from src.layer.layer import Sequential, Linear, MSELoss, Tanh, Sigmoid
-        from src.sgd.sgd import SGD
+        from toy_dl.layer.layer import Sequential, Linear, MSELoss, Tanh, Sigmoid
+        from toy_dl.sgd.sgd import SGD
 
         np.random.seed(1)
 
@@ -240,8 +240,8 @@ class Test(unittest.TestCase):
     def test_cross_entropy(self): 
         import numpy as np
         import sys
-        from src.sgd.sgd import SGD
-        from src.layer.layer import Sequential, Linear, MSELoss, Tanh, Sigmoid, CrossEntropyLoss, Embedding
+        from toy_dl.sgd.sgd import SGD
+        from toy_dl.layer.layer import Sequential, Linear, MSELoss, Tanh, Sigmoid, CrossEntropyLoss, Embedding
         np.random.seed(0)
 
         # data indices
