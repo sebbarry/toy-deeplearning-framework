@@ -14,7 +14,7 @@ setuptools.setup(
         url='https://github.com/sebbarry/toy-deeplearning-framework.git', 
         license='MIT', 
         install_requires=['numpy'],
-        packages=['toy_dl'],
+        packages=['src/toy_dl'],
         )
 
 
